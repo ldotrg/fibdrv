@@ -21,8 +21,8 @@ MODULE_VERSION("0.1");
 /* MAX_LENGTH is set to 92 because
  * ssize_t can't fit the number > 92
  */
-#define MAX_LENGTH 1000
-#define MAX_DIGITS 1000
+#define MAX_LENGTH 300
+#define MAX_DIGITS 64
 
 static dev_t fib_dev = 0;
 static struct cdev *fib_cdev;
@@ -30,7 +30,7 @@ static struct class *fib_class;
 static DEFINE_MUTEX(fib_mutex);
 
 struct BigN {
-    u8 val[MAX_LENGTH];
+    u8 val[MAX_DIGITS];
 };
 
 static inline void add_BigN(struct BigN *output, struct BigN x, struct BigN y)
