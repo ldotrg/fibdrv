@@ -7,11 +7,12 @@
 
 #define FIB_DEV "/dev/fibonacci_dev"
 #define MAX_LENGTH 1000
+#define MAX_DIGITS 1000
 int main()
 {
     long long sz;
 
-    char buf[MAX_LENGTH] = "";
+    char buf[MAX_DIGITS] = "";
     char write_buf[] = "testing writing";
     int offset = MAX_LENGTH;
 
@@ -29,7 +30,7 @@ int main()
 
     for (int i = 0; i <= offset; i++) {
         lseek(fd, i, SEEK_SET);
-        sz = read(fd, buf, MAX_LENGTH);
+        sz = read(fd, buf, MAX_DIGITS);
         printf("Reading from " FIB_DEV
                " at offset %d, returned the sequence "
                "%s.\n",
@@ -38,7 +39,7 @@ int main()
 
     for (int i = offset; i >= 0; i--) {
         lseek(fd, i, SEEK_SET);
-        sz = read(fd, buf, MAX_LENGTH);
+        sz = read(fd, buf, MAX_DIGITS);
         printf("Reading from " FIB_DEV
                " at offset %d, returned the sequence "
                "%s.\n",

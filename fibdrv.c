@@ -22,6 +22,7 @@ MODULE_VERSION("0.1");
  * ssize_t can't fit the number > 92
  */
 #define MAX_LENGTH 1000
+#define MAX_DIGITS 1000
 
 static dev_t fib_dev = 0;
 static struct cdev *fib_cdev;
@@ -36,7 +37,7 @@ static inline void add_BigN(struct BigN *output, struct BigN x, struct BigN y)
 {
     int ii = 0;
     u8 carry = 0;
-    for (ii = 0; ii < MAX_LENGTH; ii++) {
+    for (ii = 0; ii < MAX_DIGITS; ii++) {
         u8 tmp = x.val[ii] + y.val[ii] + carry;
         output->val[ii] = tmp % 10;
         carry = 0;
@@ -52,22 +53,22 @@ static void fib_sequence(char *buf, size_t size, long long k)
     /* FIXME: use clz/ctz and fast algorithms to speed up */
     struct BigN *fab =
         (struct BigN *) kmalloc((k + 2) * sizeof(struct BigN), GFP_KERNEL);
-    char kbuffer[MAX_LENGTH] = {0};
+    char kbuffer[MAX_DIGITS] = {0};
     int msb_idx;
     if (fab == NULL) {
         printk(KERN_ALERT "kmalloc fail.");
         return;
     }
 
-    memset(&(fab[0].val), 0, MAX_LENGTH);
-    memset(&(fab[1].val), 0, MAX_LENGTH);
+    memset(&(fab[0].val), 0, MAX_DIGITS);
+    memset(&(fab[1].val), 0, MAX_DIGITS);
     fab[1].val[0] = 1;
 
     for (int i = 2; i <= k; i++) {
         add_BigN(&fab[i], fab[i - 1], fab[i - 2]);
     }
     msb_idx = 0;
-    for (int i = MAX_LENGTH - 1; i > 0; i--) {
+    for (int i = MAX_DIGITS - 1; i > 0; i--) {
         if (fab[k].val[i] != 0) {
             msb_idx = i;
             break;
