@@ -54,6 +54,11 @@ static void fib_sequence(char *buf, size_t size, long long k)
         (struct BigN *) kmalloc((k + 2) * sizeof(struct BigN), GFP_KERNEL);
     char kbuffer[MAX_LENGTH] = {0};
     int msb_idx;
+    if (fab == NULL) {
+        printk(KERN_ALERT "kmalloc fail.");
+        return;
+    }
+
     memset(&(fab[0].val), 0, MAX_LENGTH);
     memset(&(fab[1].val), 0, MAX_LENGTH);
     fab[1].val[0] = 1;
