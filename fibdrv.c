@@ -78,7 +78,7 @@ static void fib_sequence(char *buf, size_t size, long long k)
         kbuffer[msb_idx - ii] = fab[k].val[ii] + 48;
     }
 
-    printk(KERN_ALERT "dutsai: size = %ld, k = %lld, %s", size, k, kbuffer);
+    printk(KERN_INFO "dutsai: size = %ld, k = %lld, %s", size, k, kbuffer);
     copy_to_user(buf, kbuffer, size);
     kfree(fab);
 }
