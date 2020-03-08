@@ -21,8 +21,8 @@ MODULE_VERSION("0.1");
 /* MAX_LENGTH is set to 92 because
  * ssize_t can't fit the number > 92
  */
-#define MAX_LENGTH 300
-#define MAX_DIGITS 64
+#define MAX_LENGTH 1000
+#define MAX_DIGITS 256
 
 static dev_t fib_dev = 0;
 static struct cdev *fib_cdev;
