@@ -6,10 +6,14 @@
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/mutex.h>
+#include <linux/slab.h>
+#include <linux/types.h>
+#include <linux/uaccess.h>
 
 MODULE_LICENSE("Dual MIT/GPL");
 MODULE_AUTHOR("National Cheng Kung University, Taiwan");
 MODULE_DESCRIPTION("Fibonacci engine driver");
+// Show the version on /sys/module/fibdrv/version
 MODULE_VERSION("0.1");
 
 #define DEV_FIBONACCI_NAME "fibonacci"
@@ -17,26 +21,60 @@ MODULE_VERSION("0.1");
 /* MAX_LENGTH is set to 92 because
  * ssize_t can't fit the number > 92
  */
-#define MAX_LENGTH 92
+#define MAX_LENGTH 1000
 
 static dev_t fib_dev = 0;
 static struct cdev *fib_cdev;
 static struct class *fib_class;
 static DEFINE_MUTEX(fib_mutex);
 
-static long long fib_sequence(long long k)
+struct BigN {
+    u8 val[MAX_LENGTH];
+};
+
+static inline void add_BigN(struct BigN *output, struct BigN x, struct BigN y)
+{
+    int ii = 0;
+    u8 carry = 0;
+    for (ii = 0; ii < MAX_LENGTH; ii++) {
+        u8 tmp = x.val[ii] + y.val[ii] + carry;
+        output->val[ii] = tmp % 10;
+        carry = 0;
+        if (tmp > 9)
+            carry = 1;
+    }
+}
+
+
+
+static void fib_sequence(char *buf, size_t size, long long k)
 {
     /* FIXME: use clz/ctz and fast algorithms to speed up */
-    long long f[k + 2];
-
-    f[0] = 0;
-    f[1] = 1;
+    struct BigN *fab =
+        (struct BigN *) kmalloc((k + 2) * sizeof(struct BigN), GFP_KERNEL);
+    char kbuffer[MAX_LENGTH] = {0};
+    int msb_idx;
+    memset(&(fab[0].val), 0, MAX_LENGTH);
+    memset(&(fab[1].val), 0, MAX_LENGTH);
+    fab[1].val[0] = 1;
 
     for (int i = 2; i <= k; i++) {
-        f[i] = f[i - 1] + f[i - 2];
+        add_BigN(&fab[i], fab[i - 1], fab[i - 2]);
+    }
+    msb_idx = 0;
+    for (int i = MAX_LENGTH - 1; i > 0; i--) {
+        if (fab[k].val[i] != 0) {
+            msb_idx = i;
+            break;
+        }
+    }
+    for (int ii = msb_idx; ii >= 0; ii--) {
+        kbuffer[msb_idx - ii] = fab[k].val[ii] + 48;
     }
 
-    return f[k];
+    printk(KERN_ALERT "dutsai: size = %ld, k = %lld, %s", size, k, kbuffer);
+    copy_to_user(buf, kbuffer, size);
+    kfree(fab);
 }
 
 static int fib_open(struct inode *inode, struct file *file)
@@ -54,13 +92,15 @@ static int fib_release(struct inode *inode, struct file *file)
     return 0;
 }
 
+
 /* calculate the fibonacci number at given offset */
 static ssize_t fib_read(struct file *file,
                         char *buf,
                         size_t size,
                         loff_t *offset)
 {
-    return (ssize_t) fib_sequence(*offset);
+    fib_sequence(buf, size, *offset);
+    return 0;
 }
 
 /* write operation is skipped */
@@ -136,7 +176,7 @@ static int __init init_fib_dev(void)
         goto failed_cdev;
     }
 
-    fib_class = class_create(THIS_MODULE, DEV_FIBONACCI_NAME);
+    fib_class = class_create(THIS_MODULE, "fibonacci_class");
 
     if (!fib_class) {
         printk(KERN_ALERT "Failed to create device class");
@@ -144,7 +184,7 @@ static int __init init_fib_dev(void)
         goto failed_class_create;
     }
 
-    if (!device_create(fib_class, NULL, fib_dev, NULL, DEV_FIBONACCI_NAME)) {
+    if (!device_create(fib_class, NULL, fib_dev, NULL, "fibonacci_dev")) {
         printk(KERN_ALERT "Failed to create device");
         rc = -4;
         goto failed_device_create;

@@ -5,18 +5,19 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#define FIB_DEV "/dev/fibonacci"
-
+#define FIB_DEV "/dev/fibonacci_dev"
+#define MAX_LENGTH 1000
 int main()
 {
     long long sz;
 
-    char buf[1];
+    char buf[MAX_LENGTH] = "";
     char write_buf[] = "testing writing";
-    int offset = 100; /* TODO: try test something bigger than the limit */
+    int offset = MAX_LENGTH;
 
     int fd = open(FIB_DEV, O_RDWR);
     if (fd < 0) {
+        fprintf(stderr, "fd = %d\n", fd);
         perror("Failed to open character device");
         exit(1);
     }
@@ -28,20 +29,20 @@ int main()
 
     for (int i = 0; i <= offset; i++) {
         lseek(fd, i, SEEK_SET);
-        sz = read(fd, buf, 1);
+        sz = read(fd, buf, MAX_LENGTH);
         printf("Reading from " FIB_DEV
                " at offset %d, returned the sequence "
-               "%lld.\n",
-               i, sz);
+               "%s.\n",
+               i, buf);
     }
 
     for (int i = offset; i >= 0; i--) {
         lseek(fd, i, SEEK_SET);
-        sz = read(fd, buf, 1);
+        sz = read(fd, buf, MAX_LENGTH);
         printf("Reading from " FIB_DEV
                " at offset %d, returned the sequence "
-               "%lld.\n",
-               i, sz);
+               "%s.\n",
+               i, buf);
     }
 
     close(fd);
