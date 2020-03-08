@@ -25,7 +25,7 @@ static long diff_in_ns(struct timespec t1, struct timespec t2)
     return (diff.tv_sec * BILLION + diff.tv_nsec);
 }
 
-int main()
+int main(int argc, char const *argv[])
 {
     long long sz;
 
@@ -35,7 +35,9 @@ int main()
     /* Performance util*/
     struct timespec start, stop;
     FILE *output_text = fopen("./performance.csv", "w");
-
+    if (argc == 2) {
+        offset = atoi(argv[1]);
+    }
     int fd = open(FIB_DEV, O_RDWR);
     if (fd < 0) {
         fprintf(stderr, "fd = %d\n", fd);
