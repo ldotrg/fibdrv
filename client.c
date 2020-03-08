@@ -7,7 +7,7 @@
 #include <unistd.h>
 
 #define FIB_DEV "/dev/fibonacci_dev"
-#define MAX_LENGTH 100
+#define MAX_LENGTH 1000
 #define MAX_DIGITS 1000
 #define BILLION 1000000000L
 #define MILLION 1000000L
