@@ -25,10 +25,13 @@ static long diff_in_ns(struct timespec t1, struct timespec t2)
     return (diff.tv_sec * BILLION + diff.tv_nsec);
 }
 
+static int debug_read(int fd, char *buf)
+{
+    return read(fd, buf, MAX_DIGITS);
+}
+
 int main(int argc, char const *argv[])
 {
-    long long sz;
-
     char buf[MAX_DIGITS] = "";
     char write_buf[] = "testing writing";
     int offset = MAX_LENGTH;
@@ -46,6 +49,7 @@ int main(int argc, char const *argv[])
     }
 
     for (int i = 0; i <= offset; i++) {
+        long long sz;
         sz = write(fd, write_buf, strlen(write_buf));
         printf("Writing to " FIB_DEV ", returned the sequence %lld\n", sz);
     }
@@ -53,7 +57,8 @@ int main(int argc, char const *argv[])
     for (int i = 0; i <= offset; i++) {
         lseek(fd, i, SEEK_SET);
         clock_gettime(CLOCK_MONOTONIC, &start);
-        sz = read(fd, buf, MAX_DIGITS);
+        // sz = read(fd, buf, MAX_DIGITS);
+        debug_read(fd, buf);
         clock_gettime(CLOCK_MONOTONIC, &stop);
         double ns = diff_in_ns(start, stop);
         fprintf(output_text, "%d, %f\n", i, ns);
@@ -66,7 +71,7 @@ int main(int argc, char const *argv[])
 
     for (int i = offset; i >= 0; i--) {
         lseek(fd, i, SEEK_SET);
-        sz = read(fd, buf, MAX_DIGITS);
+        read(fd, buf, MAX_DIGITS);
         printf("Reading from " FIB_DEV
                " at offset %d, returned the sequence "
                "%s.\n",

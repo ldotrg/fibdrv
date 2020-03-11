@@ -15,5 +15,6 @@ set terminal png font " Times_New_Roman,14 " truecolor size 1200,700
 set label 1 at screen 0.92, screen 0.6 left
 set key left
 set grid
+set datafile separator ","
 plot \
 in using 1:2 with linespoints linewidth 2 title "BaseLine"
