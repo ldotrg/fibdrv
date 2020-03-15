@@ -27,6 +27,7 @@ MODULE_VERSION("0.1");
 static dev_t fib_dev = 0;
 static struct cdev *fib_cdev;
 static struct class *fib_class;
+static int fib_flag = 0;
 static DEFINE_MUTEX(fib_mutex);
 
 struct BigN {
@@ -46,6 +47,22 @@ static inline void add_BigN(struct BigN *output, struct BigN x, struct BigN y)
     }
 }
 
+unsigned long long fast_doubling(long long k)
+{
+    unsigned long long a = 0, b = 1;
+    for (int i = 31; i >= 0; i--) {
+        unsigned long long t1 = a * (2 * b - a);
+        unsigned long long t2 = b * b + a * a;
+        a = t1;
+        b = t2;
+        if (k & (1U << i)) {
+            t1 = a + b;
+            a = b;
+            b = t1;
+        }
+    }
+    return a;
+}
 
 
 static void fib_sequence(char *buf, size_t size, long long k)
@@ -98,15 +115,26 @@ static int fib_release(struct inode *inode, struct file *file)
     return 0;
 }
 
-
 /* calculate the fibonacci number at given offset */
 static ssize_t fib_read(struct file *file,
                         char *buf,
                         size_t size,
                         loff_t *offset)
 {
-    fib_sequence(buf, size, *offset);
-    return 0;
+    int len;
+    char kbuf[MAX_DIGITS] = {0};
+    unsigned long long result;
+    switch (fib_flag) {
+    case 1:
+        result = fast_doubling(*offset);
+        snprintf(kbuf, MAX_DIGITS, "%llu", result);
+        len = copy_to_user(buf, kbuf, MAX_DIGITS);
+        break;
+    default:
+        fib_sequence(buf, size, *offset);
+        len = size;
+    }
+    return len;
 }
 
 /* write operation is skipped */
@@ -149,9 +177,6 @@ const struct file_operations fib_fops = {
     .release = fib_release,
     .llseek = fib_device_lseek,
 };
-
-static int fib_flag = 0;
-
 
 static ssize_t fib_proc_read(struct file *file,
                              char __user *buffer,
