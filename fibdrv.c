@@ -6,6 +6,7 @@
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/mutex.h>
+#include <linux/proc_fs.h>
 #include <linux/slab.h>
 #include <linux/types.h>
 #include <linux/uaccess.h>
@@ -17,7 +18,6 @@ MODULE_DESCRIPTION("Fibonacci engine driver");
 MODULE_VERSION("0.1");
 
 #define DEV_FIBONACCI_NAME "fibonacci"
-
 /* MAX_LENGTH is set to 92 because
  * ssize_t can't fit the number > 92
  */
@@ -150,6 +150,116 @@ const struct file_operations fib_fops = {
     .llseek = fib_device_lseek,
 };
 
+static int fib_flag = 0;
+
+
+static ssize_t fib_proc_read(struct file *file,
+                             char __user *buffer,
+                             size_t count,
+                             loff_t *ppos)
+{
+    int len = 0;
+    char kbuf[128];
+    printk(KERN_INFO "%s called\n", __func__);
+    if (*ppos > 0 || count < 128)
+        return 0;
+    len = snprintf(kbuf, 16, "fib_flag = %d\n", fib_flag);
+    if (copy_to_user(buffer, kbuf, len))
+        return -EFAULT;
+    *ppos = len;
+    return (len);
+}
+
+static ssize_t fib_proc_write(struct file *file,
+                              const char __user *buffer,
+                              size_t count,
+                              loff_t *ppos)
+{
+    char kbuf[128];
+    unsigned long len = count;
+    int n;
+
+    printk(KERN_INFO "%d (%s)\n", (int) len, __func__);
+
+    if (*ppos > 0 || count > 128)
+        return -EFAULT;
+    if (copy_from_user(kbuf, buffer, len))
+        return -EFAULT;
+
+    n = simple_strtol(kbuf, NULL, 10);
+    if (n == 0)
+        fib_flag = 0;
+    else
+        fib_flag = 1;
+
+    return (len);
+}
+
+static loff_t fib_proc_lseek(struct file *file, loff_t pos, int orig)
+{
+    loff_t new_pos = 0;
+    switch (orig) {
+    case 0: /* SEEK_SET: */
+        new_pos = pos;
+        break;
+    case 1: /* SEEK_CUR: */
+        new_pos = file->f_pos + pos;
+        break;
+    case 2: /* SEEK_END: */
+        new_pos = 128 - pos;
+        break;
+    }
+
+    if (new_pos > 128)
+        new_pos = 128;  // max case
+    if (new_pos < 0)
+        new_pos = 0;        // min case
+    file->f_pos = new_pos;  // This is what we'll use now
+    return new_pos;
+}
+
+static struct file_operations fib_proc_ops = {
+    .owner = THIS_MODULE,
+    .read = fib_proc_read,
+    .write = fib_proc_write,
+    .llseek = fib_proc_lseek,
+};
+
+#define PROC_FIBONACCI_BASE_DIR "fibonacci"
+
+static int fib_procfs_init(void)
+{
+    /* add /proc */
+    struct proc_dir_entry *proc_entry;
+    struct proc_dir_entry *named_dir;
+
+    named_dir = proc_mkdir(PROC_FIBONACCI_BASE_DIR, NULL);
+    if (!named_dir) {
+        printk(KERN_ERR "Couldn't create dir /proc/%s\n",
+               PROC_FIBONACCI_BASE_DIR);
+        goto cleanup;
+    }
+
+    proc_entry = proc_create("fib_flag", 0666, named_dir, &fib_proc_ops);
+    if (proc_entry == NULL) {
+        printk(KERN_WARNING "fib: unable to create %s/fib_flag entry\n",
+               PROC_FIBONACCI_BASE_DIR);
+        goto cleanup;
+    }
+    return 0;
+cleanup:
+    remove_proc_subtree(PROC_FIBONACCI_BASE_DIR, NULL);
+    return -ENOMEM;
+}
+
+static void fib_procfs_exit(void)
+{
+    // remove_proc_entry(PROC_FIBONACCI_BASE_DIR, NULL);
+    remove_proc_subtree(PROC_FIBONACCI_BASE_DIR, NULL);
+}
+
+
+
 static int __init init_fib_dev(void)
 {
     int rc = 0;
@@ -195,6 +305,12 @@ static int __init init_fib_dev(void)
         rc = -4;
         goto failed_device_create;
     }
+
+    if (fib_procfs_init()) {
+        printk(KERN_ALERT "Failed to create procfs");
+        rc = -5;
+        goto failed_device_create;
+    }
     return rc;
 failed_device_create:
     class_destroy(fib_class);
@@ -212,6 +328,7 @@ static void __exit exit_fib_dev(void)
     class_destroy(fib_class);
     cdev_del(fib_cdev);
     unregister_chrdev_region(fib_dev, 1);
+    fib_procfs_exit();
 }
 
 module_init(init_fib_dev);
