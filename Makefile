@@ -2,7 +2,15 @@ CONFIG_MODULE_SIG = n
 TARGET_MODULE := fibdrv
 
 obj-m := $(TARGET_MODULE).o
-ccflags-y := -std=gnu99 -Wno-declaration-after-statement
+
+$(TARGET_MODULE)-objs := bignum_k/apm.o \
+                         bignum_k/bignum.o \
+                         bignum_k/format.o \
+                         bignum_k/mul.o \
+                         bignum_k/sqr.o
+
+
+ccflags-y := -std=gnu99 -Wno-declaration-after-statement -msse2
 
 KDIR := /lib/modules/$(shell uname -r)/build
 PWD := $(shell pwd)

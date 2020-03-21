@@ -1,5 +1,4 @@
-#include <stdlib.h>
-#include <string.h>
+#include <linux/string.h>
 
 #include "apm.h"
 

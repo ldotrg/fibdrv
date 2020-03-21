@@ -1,6 +1,5 @@
-#include <ctype.h>
-#include <stdio.h>
-
+#include <asm/fpu/api.h>
+#include <linux/types.h>
 #include "apm.h"
 
 /* radix_sizes[B] = number of radix-B digits needed to represent an 8-bit
@@ -141,6 +140,7 @@ static size_t apm_string_size(apm_size size, unsigned int radix)
         return ((size * APM_DIGIT_BITS + lg - 1) / lg) + 1;
     }
     /* round up to second next largest integer */
+
     return (size_t)(radix_sizes[radix] * (size * APM_DIGIT_SIZE)) + 2;
 }
 
@@ -283,7 +283,7 @@ static char *apm_get_str(const apm_digit *u,
     return out;
 }
 
-void apm_fprint(const apm_digit *u, apm_size size, unsigned int radix, FILE *fp)
+void apm_fprint(const apm_digit *u, apm_size size, unsigned int radix)
 {
     ASSERT(u != NULL);
 
@@ -295,6 +295,6 @@ void apm_fprint(const apm_digit *u, apm_size size, unsigned int radix, FILE *fp)
     char *str = MALLOC(string_size);
     char *p = apm_get_str(u, size, radix, str);
     ASSERT(p != NULL);
-    fputs(p, fp);
+    printk(KERN_INFO "%s", p);
     FREE(str);
 }

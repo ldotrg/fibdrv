@@ -1,4 +1,3 @@
-#include <stdlib.h>
 
 #include "bn.h"
 
@@ -268,15 +267,13 @@ void bn_lshift(const bn *p, unsigned int bits, bn *q)
     }
 }
 
-void bn_fprint(const bn *n, unsigned int base, FILE *fp)
+void bn_fprint(const bn *n, unsigned int base)
 {
-    if (!fp)
-        fp = stdout;
     if (n->size == 0) {
-        fputc('0', fp);
+        printk(KERN_INFO "0");
         return;
     }
     if (n->sign)
-        fputc('-', fp);
-    apm_fprint(n->digits, n->size, base, fp);
+        printk(KERN_INFO "-");
+    apm_fprint(n->digits, n->size, base);
 }

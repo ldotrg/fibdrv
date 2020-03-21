@@ -125,14 +125,12 @@ typedef unsigned __int128 uint128_t;
  * or not. This is intentional and sometimes useful.
  */
 #ifndef NDEBUG
-#include <stdio.h>
-#include <stdlib.h>
+#include <linux/kernel.h>
 #define ASSERT(expr)                                                           \
     do {                                                                       \
         if (!unlikely(expr)) {                                                 \
-            fprintf(stderr, "%s:%d (%s) assertion failed: \"%s\"\n", __FILE__, \
-                    __LINE__, __PRETTY_FUNCTION__, #expr);                     \
-            abort();                                                           \
+            printk(KERN_ERR "%s:%d (%s) assertion failed: \"%s\"\n", __FILE__, \
+                   __LINE__, __PRETTY_FUNCTION__, #expr);                      \
         }                                                                      \
     } while (0)
 #else

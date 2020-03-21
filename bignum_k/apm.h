@@ -3,10 +3,7 @@
 #ifndef _APM_H_
 #define _APM_H_
 
-#include <stdint.h>
-#include <stdio.h>  /* for FILE*, stdout */
-#include <string.h> /* for memmove */
-
+#include <linux/string.h> /* for memmove */
 #include "apm_internal.h"
 
 #ifdef __cplusplus
@@ -14,7 +11,7 @@ extern "C" {
 #endif
 
 #if APM_DIGIT_SIZE == 4
-typedef uint32_t apm_digit;
+typedef unsigned int apm_digit;
 #define APM_DIGIT_HMASK UINT32_C(0xffff0000)
 #define APM_DIGIT_LMASK UINT32_C(0x0000ffff)
 #define APM_DIGIT_BITS 32U
@@ -22,7 +19,7 @@ typedef uint32_t apm_digit;
 #define APM_DIGIT_MAX UINT32_MAX
 
 #elif APM_DIGIT_SIZE == 8
-typedef uint64_t apm_digit;
+typedef unsigned long long apm_digit;
 #define APM_DIGIT_HMASK UINT64_C(0xffffffff00000000)
 #define APM_DIGIT_LMASK UINT64_C(0x00000000ffffffff)
 #define APM_DIGIT_BITS 64U
@@ -33,7 +30,12 @@ typedef uint64_t apm_digit;
 #error "APM_DIGIT_SIZE must be 4 or 8"
 #endif
 
-typedef uint32_t apm_size;
+#define UINT8_C(v) v
+#define UINT16_C(v) v
+#define UINT32_C(v) v
+#define UINT64_C(v) v##ULL
+
+typedef unsigned int apm_size;
 
 /* Set u[size] to zero. */
 #define apm_zero(u, size) memset((u), 0, APM_DIGIT_SIZE *(size))
@@ -169,14 +171,11 @@ apm_digit apm_lshifti(apm_digit *u, apm_size size, unsigned int shift);
 apm_digit apm_rshifti(apm_digit *u, apm_size size, unsigned int shift);
 
 /* Print u[size] in a radix on [2,36] to the stream fp. No newline is output. */
-void apm_fprint(const apm_digit *u,
-                apm_size size,
-                unsigned int radix,
-                FILE *fp);
+void apm_fprint(const apm_digit *u, apm_size size, unsigned int radix);
 /* Convenience macros for bases 2, 10, and 16, with fp = stdout. */
-#define apm_print(u, size, b) apm_fprint((u), (size), (b), stdout)
-#define apm_print_dec(u, size) apm_fprint_dec((u), (size), stdout)
-#define apm_print_hex(u, size) apm_fprint_hex((u), (size), stdout)
+#define apm_print(u, size, b) apm_fprint((u), (size), (b))
+#define apm_print_dec(u, size) apm_fprint_dec((u), (size))
+#define apm_print_hex(u, size) apm_fprint_hex((u), (size))
 
 #define APM_NORMALIZE(u, usize)         \
     while ((usize) && !(u)[(usize) -1]) \
