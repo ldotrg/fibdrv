@@ -43,6 +43,7 @@ pass = $(PRINTF) "$(PASS_COLOR)$1 Passed [-]$(NO_COLOR)\n"
 check: all
 	$(MAKE) unload
 	$(MAKE) load
+	echo 2 > /proc/fibonacci/fib_flag 
 	sudo ./client > out
 	$(MAKE) unload
 	@diff -u out scripts/expected.txt && $(call pass)

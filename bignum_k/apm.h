@@ -172,6 +172,10 @@ apm_digit apm_rshifti(apm_digit *u, apm_size size, unsigned int shift);
 
 /* Print u[size] in a radix on [2,36] to the stream fp. No newline is output. */
 void apm_fprint(const apm_digit *u, apm_size size, unsigned int radix);
+void apm_ufprint(const apm_digit *u,
+                 apm_size size,
+                 unsigned int radix,
+                 char *const kbuf);
 /* Convenience macros for bases 2, 10, and 16, with fp = stdout. */
 #define apm_print(u, size, b) apm_fprint((u), (size), (b))
 #define apm_print_dec(u, size) apm_fprint_dec((u), (size))

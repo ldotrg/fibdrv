@@ -277,3 +277,17 @@ void bn_fprint(const bn *n, unsigned int base)
         printk(KERN_INFO "-");
     apm_fprint(n->digits, n->size, base);
 }
+
+void bn_ufprint(const bn *n, unsigned int base, char *const kbuf)
+{
+    int i = 0;
+    if (n->size == 0) {
+        strncpy(kbuf, "0\0", 2);
+        return;
+    }
+    if (n->sign) {
+        strncpy(kbuf, "-", 1);
+        i++;
+    }
+    apm_ufprint(n->digits, n->size, base, &kbuf[i]);
+}

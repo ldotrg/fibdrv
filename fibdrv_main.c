@@ -224,8 +224,14 @@ static void bignum_k_fibonacci(long long n, bn *fib)
 void bignum_k_fast_doubling(char *buf, size_t size, long long k)
 {
     bn_t fib = BN_INITIALIZER;
+    char *kbuf = (char *) kmalloc(size, GFP_KERNEL);
+    if (!kbuf)
+        return;
+    memset(kbuf, 0, size);
     bignum_k_fibonacci(k, fib);
     printk(KERN_INFO "dutsai Fib(%u)=", k), bn_print_dec(fib), printk("\n");
+    bn_uprint_dec(fib, kbuf);
+    copy_to_user(buf, kbuf, size);
     bn_free(fib);
 }
 

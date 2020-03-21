@@ -298,3 +298,21 @@ void apm_fprint(const apm_digit *u, apm_size size, unsigned int radix)
     printk(KERN_INFO "%s", p);
     FREE(str);
 }
+
+void apm_ufprint(const apm_digit *u,
+                 apm_size size,
+                 unsigned int radix,
+                 char *kbuf)
+{
+    ASSERT(u != NULL);
+    ASSERT(kbuf != NULL);
+    ASSERT(radix >= 2);
+    ASSERT(radix <= 36);
+    APM_NORMALIZE(u, size);
+    const size_t string_size = apm_string_size(size, radix) + 1;
+    char *str = MALLOC(string_size);
+    char *p = apm_get_str(u, size, radix, str);
+    ASSERT(p != NULL);
+    snprintf(kbuf, string_size, "%s", p);
+    FREE(str);
+}

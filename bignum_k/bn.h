@@ -50,6 +50,11 @@ void bn_fprint(const bn *n, unsigned int base);
 #define bn_print_dec(n) bn_print((n), 10)
 #define bn_print_hex(n) bn_print((n), 16)
 
+void bn_ufprint(const bn *n, unsigned int base, char *const kbuf);
+#define bn_uprint(n, base, kbuf) bn_ufprint((n), (base), (kbuf))
+#define bn_uprint_dec(n, kbuf) bn_uprint((n), 10, (kbuf))
+#define bn_uprint_hex(n, kbuf) bn_uprint((n), 16, (kbuf))
+
 #ifdef __cplusplus
 }
 #endif
