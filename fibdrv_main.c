@@ -69,7 +69,7 @@ static ssize_t fib_proc_write(struct file *file,
     if (n == 0)
         fib_flag = 0;
     else
-        fib_flag = 1;
+        fib_flag = n;
 
     return (len);
 }
