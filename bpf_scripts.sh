@@ -6,6 +6,13 @@
 # sed -i -e 's/SED_REPLACE_PATH/'$STOP_DIR'/g' users_probe.bt
 #sudo bpftrace users_probe.bt
 
+clean_up() 
+{
+    # Perform program exit housekeeping
+    sed -i 's/Attaching 4 probes...//g' performance.csv
+    exit
+}
+trap clean_up SIGHUP SIGINT SIGTERM
 echo "Data will preserved in performance.csv... Press Ctrl+C to stop."
 
 sudo bpftrace -e '
@@ -25,4 +32,5 @@ uretprobe:'$PWD'/client:debug_read
 END 
     { 
         clear(@start); clear(@stop); clear(@cnt);
-    }' | tee performance.csv && sed -i 's/Attaching 4 probes...//g' performance.csv
+    }' | tee performance.csv 
+
