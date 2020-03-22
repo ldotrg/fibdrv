@@ -19,5 +19,5 @@ done
 sudo sh -c "echo f > /proc/irq/default_smp_affinity"
 sudo sh -c "echo 1 > /sys/devices/system/cpu/intel_pstate/no_turbo"
 
-echo 0 > /proc/fibonacci/fib_flag
+echo 2 > /proc/fibonacci/fib_flag
 sudo taskset 0x20 ./client
