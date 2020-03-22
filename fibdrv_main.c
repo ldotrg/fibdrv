@@ -23,8 +23,8 @@ MODULE_VERSION("0.1");
 /* MAX_LENGTH is set to 92 because
  * ssize_t can't fit the number > 92
  */
-#define MAX_LENGTH 1000
-#define MAX_DIGITS 256
+#define MAX_LENGTH 3000
+#define MAX_DIGITS 768
 
 static dev_t fib_dev = 0;
 static struct cdev *fib_cdev;
@@ -175,8 +175,8 @@ int fib_sequence_max92(char *buf, size_t size, long long k)
     int len;
     unsigned long long result;
     result = fast_doubling(k);
-    snprintf(kbuf, MAX_DIGITS, "%llu", result);
-    len = copy_to_user(buf, kbuf, MAX_DIGITS);
+    len = snprintf(kbuf, MAX_DIGITS, "%llu", result);
+    len = copy_to_user(buf, kbuf, len);
     return len;
 }
 
@@ -279,7 +279,7 @@ static int fib_sequence(char *buf, size_t size, long long k)
         kbuffer[msb_idx - ii] = fab[k].val[ii] + 48;
     }
 
-    printk(KERN_INFO "dutsai: size = %ld, k = %lld, %s", size, k, kbuffer);
+    // printk(KERN_INFO "dutsai: size = %ld, k = %lld, %s", size, k, kbuffer);
     copy_to_user(buf, kbuffer, size);
     kfree(fab);
     return len;

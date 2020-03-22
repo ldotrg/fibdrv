@@ -7,7 +7,7 @@
 # sudo reboot
 
 # Turn off address space layout randomization 
-sudo sh -c "echo 0 > /proc/sys/kernel/randomize_va_space"
+sudo sh -c "echo 1 > /proc/sys/kernel/randomize_va_space"
 
 cpuidx_arr=(4 5)
 for i in "${cpuidx_arr[@]}"
