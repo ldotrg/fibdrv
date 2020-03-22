@@ -18,7 +18,7 @@ echo "Data will preserved in performance.csv... Press Ctrl+C to stop."
 sudo bpftrace -e '
 BEGIN 
     { 
-        @start = nsecs; 
+        @start = nsecs;
     }
 uprobe:'$PWD'/client:debug_read /@start != 0/ 
     { 
@@ -26,8 +26,8 @@ uprobe:'$PWD'/client:debug_read /@start != 0/
     }
 uretprobe:'$PWD'/client:debug_read 
     { 
-      @cnt++; @stop = nsecs; 
-      printf("%d ,%llu\n", (@cnt - 1), (@stop - @start)); 
+      @cnt[pid]++; @stop = nsecs; 
+      printf("%d ,%llu\n", (@cnt[pid] - 1), (@stop - @start)); 
     }
 END 
     { 
