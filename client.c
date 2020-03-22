@@ -37,7 +37,7 @@ int main(int argc, char const *argv[])
     int offset = MAX_LENGTH;
     /* Performance util*/
     struct timespec start, stop;
-    FILE *output_text = fopen("./performance.csv", "w");
+    FILE *output_text = fopen("./performance_clock_gettime.csv", "w");
     if (argc == 2) {
         offset = atoi(argv[1]);
     }

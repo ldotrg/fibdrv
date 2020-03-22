@@ -169,6 +169,17 @@ unsigned long long fast_doubling(long long k)
     return a;
 }
 
+int fib_sequence_max92(char *buf, size_t size, long long k)
+{
+    char kbuf[MAX_DIGITS] = {0};
+    int len;
+    unsigned long long result;
+    result = fast_doubling(k);
+    snprintf(kbuf, MAX_DIGITS, "%llu", result);
+    len = copy_to_user(buf, kbuf, MAX_DIGITS);
+    return len;
+}
+
 /* Compute the Nth Fibonnaci number F_n, where
  * F_0 = 0
  * F_1 = 1
@@ -221,30 +232,33 @@ static void bignum_k_fibonacci(long long n, bn *fib)
 }
 
 
-void bignum_k_fast_doubling(char *buf, size_t size, long long k)
+int bignum_k_fast_doubling(char *buf, size_t size, long long k)
 {
     bn_t fib = BN_INITIALIZER;
+    int len;
     char *kbuf = (char *) kmalloc(size, GFP_KERNEL);
     if (!kbuf)
-        return;
+        return 0;
     memset(kbuf, 0, size);
     bignum_k_fibonacci(k, fib);
     //  printk(KERN_INFO "dutsai Fib(%u)=", k), bn_print_dec(fib), printk("\n");
     bn_uprint_dec(fib, kbuf);
-    copy_to_user(buf, kbuf, size);
+    len = copy_to_user(buf, kbuf, size);
     bn_free(fib);
+    return len;
 }
 
-static void fib_sequence(char *buf, size_t size, long long k)
+static int fib_sequence(char *buf, size_t size, long long k)
 {
     /* FIXME: use clz/ctz and fast algorithms to speed up */
     struct BigN *fab =
         (struct BigN *) kmalloc((k + 2) * sizeof(struct BigN), GFP_KERNEL);
     char kbuffer[MAX_DIGITS] = {0};
     int msb_idx;
+    int len;
     if (fab == NULL) {
         printk(KERN_ALERT "kmalloc fail.");
-        return;
+        return 0;
     }
 
     memset(&(fab[0].val), 0, MAX_DIGITS);
@@ -268,6 +282,7 @@ static void fib_sequence(char *buf, size_t size, long long k)
     printk(KERN_INFO "dutsai: size = %ld, k = %lld, %s", size, k, kbuffer);
     copy_to_user(buf, kbuffer, size);
     kfree(fab);
+    return len;
 }
 
 static int fib_open(struct inode *inode, struct file *file)
@@ -285,6 +300,7 @@ static int fib_release(struct inode *inode, struct file *file)
     return 0;
 }
 
+int (*fib_hook)(char *, size_t, long long);
 /* calculate the fibonacci number at given offset */
 static ssize_t fib_read(struct file *file,
                         char *buf,
@@ -292,21 +308,17 @@ static ssize_t fib_read(struct file *file,
                         loff_t *offset)
 {
     int len;
-    char kbuf[MAX_DIGITS] = {0};
-    unsigned long long result;
     switch (fib_flag) {
     case 1:
-        result = fast_doubling(*offset);
-        snprintf(kbuf, MAX_DIGITS, "%llu", result);
-        len = copy_to_user(buf, kbuf, MAX_DIGITS);
+        fib_hook = fib_sequence_max92;
         break;
     case 2:
-        bignum_k_fast_doubling(buf, size, *offset);
+        fib_hook = bignum_k_fast_doubling;
         break;
     default:
-        fib_sequence(buf, size, *offset);
-        len = size;
+        fib_hook = fib_sequence;
     }
+    len = fib_hook(buf, size, *offset);
     return len;
 }
 
