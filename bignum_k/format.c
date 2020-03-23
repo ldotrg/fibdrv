@@ -1,4 +1,3 @@
-#include <asm/fpu/api.h>
 #include <linux/types.h>
 #include "apm.h"
 
