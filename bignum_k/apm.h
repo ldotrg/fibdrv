@@ -34,7 +34,10 @@ typedef unsigned long long apm_digit;
 #define UINT16_C(v) v
 #define UINT32_C(v) v
 #define UINT64_C(v) v##ULL
-
+#define UINT8_MAX 0xff                   /* 255U */
+#define UINT16_MAX 0xffff                /* 65535U */
+#define UINT32_MAX 0xffffffff            /* 4294967295U */
+#define UINT64_MAX 0xffffffffffffffffULL /* 18446744073709551615ULL */
 typedef unsigned int apm_size;
 
 /* Set u[size] to zero. */

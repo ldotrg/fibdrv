@@ -253,16 +253,24 @@ static int fib_sequence(char *buf, size_t size, long long k)
     /* FIXME: use clz/ctz and fast algorithms to speed up */
     struct BigN *fab =
         (struct BigN *) kmalloc((k + 2) * sizeof(struct BigN), GFP_KERNEL);
-    char kbuffer[MAX_DIGITS] = {0};
+    char *kbuffer = NULL;
     int msb_idx;
     int len;
     if (fab == NULL) {
-        printk(KERN_ALERT "kmalloc fail.");
-        return 0;
+        printk(KERN_ALERT "kmalloc fab fail.");
+        len = 0;
+        goto fail_alloc_mem;
+    }
+    kbuffer = (char *) kmalloc(MAX_DIGITS, GFP_KERNEL);
+    if (kbuffer == NULL) {
+        printk(KERN_ALERT "kmalloc kbuffer fail.");
+        len = 0;
+        goto fail_alloc_mem;
     }
 
     memset(&(fab[0].val), 0, MAX_DIGITS);
     memset(&(fab[1].val), 0, MAX_DIGITS);
+    memset(kbuffer, 0, MAX_DIGITS);
     fab[1].val[0] = 1;
 
     for (int i = 2; i <= k; i++) {
@@ -281,7 +289,11 @@ static int fib_sequence(char *buf, size_t size, long long k)
 
     // printk(KERN_INFO "dutsai: size = %ld, k = %lld, %s", size, k, kbuffer);
     copy_to_user(buf, kbuffer, size);
-    kfree(fab);
+fail_alloc_mem:
+    if (fab)
+        kfree(fab);
+    if (kbuffer)
+        kfree(kbuffer);
     return len;
 }
 
