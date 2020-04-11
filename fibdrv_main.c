@@ -29,7 +29,7 @@ MODULE_VERSION("0.1");
 static dev_t fib_dev = 0;
 static struct cdev *fib_cdev;
 static struct class *fib_class;
-static int fib_flag = 0;
+static int fib_flag = 2;
 static DEFINE_MUTEX(fib_mutex);
 
 static ssize_t fib_proc_read(struct file *file,
