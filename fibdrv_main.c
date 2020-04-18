@@ -10,6 +10,7 @@
 #include <linux/slab.h>
 #include <linux/types.h>
 #include <linux/uaccess.h>
+#include <linux/version.h>
 #include "bignum_k/bn.h"
 
 MODULE_LICENSE("Dual MIT/GPL");
@@ -96,6 +97,13 @@ static loff_t fib_proc_lseek(struct file *file, loff_t pos, int orig)
     file->f_pos = new_pos;  // This is what we'll use now
     return new_pos;
 }
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 6, 0)
+static struct proc_ops fib_proc_ops = {
+    .proc_read = fib_proc_read,
+    .proc_write = fib_proc_write,
+    .proc_lseek = fib_proc_lseek,
+};
+#else
 
 static struct file_operations fib_proc_ops = {
     .owner = THIS_MODULE,
@@ -103,6 +111,7 @@ static struct file_operations fib_proc_ops = {
     .write = fib_proc_write,
     .llseek = fib_proc_lseek,
 };
+#endif
 
 static int fib_procfs_init(void)
 {
